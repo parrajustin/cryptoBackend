@@ -1,0 +1,27 @@
+{
+  "name": "cryptobackend",
+  "version": "1.0.0",
+  "description": "crypto software backend that connects to vm servers",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "co": "^4.6.0",
+    "compression": "^1.7.1",
+    "cookie-parser": "^1.4.3",
+    "crypto-js": "^3.1.9-1",
+    "errorhandler": "^1.5.0",
+    "express": "^4.16.2",
+    "helmet": "^3.9.0",
+    "jsonwebtoken": "^8.1.0",
+    "method-override": "^2.3.10",
+    "morgan": "^1.9.0",
+    "mysql": "^2.15.0",
+    "path": "^0.12.7",
+    "virtualbox-soap": "^1.0.0"
+  }
+}
