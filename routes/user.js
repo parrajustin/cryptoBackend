@@ -173,6 +173,7 @@ function setupUser(app, pool) {
     verify(req, (jwtError, decoded) => {
       if (decoded['isAdmin']) {
         const toDelete =  req.query['user'] || req.body['user'] || req.param['user'];
+        console.log(toDelete);
         if (!toDelete) {
           res.status(400).end();
         } else {
@@ -182,7 +183,7 @@ function setupUser(app, pool) {
               throw err;
             }
 
-            connection.query('DELETE FROM user_history WHERE email = ?', [toDelete], function (error, results, fields) {
+            connection.query('DELETE FROM `user_history` WHERE email = ?', [toDelete], function (error, results, fields) {
               if (error) {
                 // And done with the connection.
                 connection.release();
@@ -193,7 +194,7 @@ function setupUser(app, pool) {
                 throw error;
               }
                 
-              connection.query('DELETE FROM registered_user WHERE email = ?', [toDelete], function (error, results, fields) {
+              connection.query('DELETE FROM `registered_user` WHERE email = ?', [toDelete], function (error, results, fields) {
                 // And done with the connection.
                 connection.release();
 
