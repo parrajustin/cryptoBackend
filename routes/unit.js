@@ -1,6 +1,5 @@
 const { verify } = require('../util');
 const virtualbox = require("virtualbox-soap");
-const co = require("co");
 
 function setupUnit(app, pool) {
   
@@ -59,24 +58,6 @@ function setupUnit(app, pool) {
               console.log(results);
               
               if (results.length == 0) {
-                // co(function *() {
-                //   try {
-                //       const serverURL = "http://localhost:18083"; // This url is the default one, it can be omitted 
-                //       const websessionManager = yield virtualbox(serverURL);
-                //       const vbox = yield websessionManager.logon(req.body['user'], req.body['pass']);
-                //       // const machine = yield vbox.findMachine("myMachineNameOrId");
-                //       // const session = yield websessionManager.getSessionObject(vbox);
-                //       // const progress = yield machine.launchVMProcess(session);
-                //       // yield progress.waitForCompletion(-1);
-                //       // const machineState = yield machine.getState();
-                //       console.log(`The virtual machine is ${vbox}`);
-                //       // ... 
-                //   } catch (error) {
-                //       console.error(error + "");
-                //   }
-                // });
-                console.log(req.body);
-                res.status(200);
                 connection.query(
                   "INSERT INTO `workshop_unit` (`WUname`, `WUdescription`, `WUpersistence_session`, `WUhost`, `WUpublished_date`, `WUstatus`) " +
                   "VALUES (?, ?, ?, ?, ?, 1);"
@@ -91,7 +72,7 @@ function setupUnit(app, pool) {
                     throw error;
                   }
 
-                  console.log(results);
+                  res.status(200).end();
                 });
               } else { 
                 connection.release();
