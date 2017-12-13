@@ -1,4 +1,4 @@
-const { verify } = require('../util');
+const { verify, asyncConnection } = require('../util');
 const virtualbox = require("virtualbox-soap");
 const co = require("co");
 
@@ -24,17 +24,23 @@ function handleServer(ip, user, pass, pool) {
           machines = [];
         }
         // console.log(JSON.stringify(vbox));
-        connection.query(
+        let results = yield asyncConnection(
+          connection, 
           "INSERT INTO `server` (`user_name`, `password`, `status`, `ip_address`) " +
-          "VALUES (?, ?, 'setting up', ?);"
-          , [user, pass, ip], function (error, results, fields) {
+          "VALUES (?, ?, 'setting up', ?);",
+          [user, pass, ip]
+        );
+        // connection.query(
+        //   "INSERT INTO `server` (`user_name`, `password`, `status`, `ip_address`) " +
+        //   "VALUES (?, ?, 'setting up', ?);"
+        //   , [user, pass, ip], function (error, results, fields) {
   
-          // Handle error after the release.
-          if (error) {
-            connection.release();
-            throw error;
-          }
-        });
+        //   // Handle error after the release.
+        //   if (error) {
+        //     connection.release();
+        //     throw error;
+        //   }
+        // });
   
   
         
@@ -57,21 +63,37 @@ function handleServer(ip, user, pass, pool) {
   
           const uid = yield machine.getId();
           const name = yield machine.getName();
+
+          // const vrdeServer = yield machine.getVRDEServer();
+          // const vrdpbool = yield vrdeServer.getEnabled();
+          // let props = null;
+
+          // if (vrdpbool) {
+          //   props = yield vrdeServer.getVRDEProperties();
+          //   console.log(props);
+          // }
   
           vm['VMUID'] = uid;
           vm['VMname'] = name;
-  
-          connection.query(
+
+          let results = yield asyncConnection(
+            connection, 
             "INSERT INTO `virtual_machine` (`VMname`, `VMvrdp`, `VMrecent_snapshot`, `VMhost_server`, `VMUID`) " +
-            "VALUES (?, ?, ?, ?, ?);"
-            , [vm['VMname'], vm['VMvrdp'], vm['VMrecent_snapshot'], vm['VMhost_server'], vm['VMUID']], function (error, results, fields) {
+            "VALUES (?, ?, ?, ?, ?);",
+            [vm['VMname'], -1, vm['VMrecent_snapshot'], vm['VMhost_server'], vm['VMUID']]
+          );
+  
+          // connection.query(
+          //   "INSERT INTO `virtual_machine` (`VMname`, `VMvrdp`, `VMrecent_snapshot`, `VMhost_server`, `VMUID`) " +
+          //   "VALUES (?, ?, ?, ?, ?);"
+          //   , [vm['VMname'], -1, vm['VMrecent_snapshot'], vm['VMhost_server'], vm['VMUID']], function (error, results, fields) {
             
-            // Handle error after the release.
-            if (error) {
-              connection.release();
-              throw error;
-            }
-          });
+          //   // Handle error after the release.
+          //   if (error) {
+          //     connection.release();
+          //     throw error;
+          //   }
+          // });
   
           for (let j = 0; j < 4; j++) {
             const net = yield machine.getNetworkAdapter(j);
@@ -90,27 +112,37 @@ function handleServer(ip, user, pass, pool) {
           }
   
           if (query.length > 0) {
-            connection.query(
+
+            let results = yield asyncConnection(
+              connection, 
               "INSERT INTO `vm_netadapters` (`VMname`, `Network_Adapter`) " +
-              "VALUES " + query.join(', ') + ";"
-              , netArray, function (error, results, fields) {
+              "VALUES " + query.join(', ') + ";",
+              netArray
+            );
+            // connection.query(
+            //   "INSERT INTO `vm_netadapters` (`VMname`, `Network_Adapter`) " +
+            //   "VALUES " + query.join(', ') + ";"
+            //   , netArray, function (error, results, fields) {
   
               
-              // Handle error after the release.
-              if (error) {   
-                // And done with the connection.
-                connection.release();
-                throw error;
-              }
-            });
+            //   // Handle error after the release.
+            //   if (error) {   
+            //     // And done with the connection.
+            //     connection.release();
+            //     throw error;
+            //   }
+            // });
           }
         }
   
         websessionManager.logoff(vbox);
       } catch (error) {
-          console.error(error + "");
+        connection.release();
+        console.error(error + "");
       }
-    });
+    }).then(function(value) {
+      connection.release();
+    });;
   });
 }
 
@@ -171,6 +203,7 @@ function setupServer(app, pool) {
             if (results.length == 0) {
 
               handleServer(req.body['ip'], req.body['user'], req.body['pass'], pool);
+              res.status(200).end();
               
               // console.log(req.body);
               // connection.query(
